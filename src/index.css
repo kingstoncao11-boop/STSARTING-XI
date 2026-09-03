@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #0f1115;
+    color: #f1f5f9;
+  }
+}
+
+/* Pitch Grass Stripes Texture - High contrast professional grass */
+.pitch-stripes-vertical {
+  background: repeating-linear-gradient(
+    90deg,
+    #133b22 0px,
+    #133b22 75px,
+    #184528 75px,
+    #184528 150px
+  );
+}
+
+.pitch-stripes-horizontal {
+  background: repeating-linear-gradient(
+    180deg,
+    #133b22 0px,
+    #133b22 55px,
+    #184528 55px,
+    #184528 110px
+  );
+}
+
+/* Custom Scrollbar for sleek football UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 17, 21, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(45, 53, 69, 0.7);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.9);
+}
+

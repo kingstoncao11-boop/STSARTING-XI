@@ -1,0 +1,6 @@
+{
+  "name": "Starting XI",
+  "description": "Football lineup and tactics builder. Create formations, freely position players, draw tactical annotations, and build professional matchday squads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
