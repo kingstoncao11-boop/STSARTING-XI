@@ -19,7 +19,6 @@ import { Bench } from './Bench';
 import { getFormationById, PRESET_FORMATIONS } from '../data/formations';
 import { getCategoryFromPosition } from '../data/players';
 import { TacticalOptionsPanel } from './TacticalOptionsPanel';
-import { AiTacticalAssistant } from './AiTacticalAssistant';
 import { TacticalPreset } from '../types';
 import {
   Settings,
@@ -32,7 +31,8 @@ import {
   Users,
   Search,
   Check,
-  Sparkles,
+  Share2,
+  Highlighter,
   Info,
   Maximize2,
   Minimize2,
@@ -54,9 +54,13 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
-  BookOpen
+  BookOpen,
+  Zap,
+  Waves
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { AdBanner } from './AdBanner';
+import { LegalTab } from './LegalModal';
 
 interface TacticsEditorProps {
   currentLineup: Lineup;
@@ -66,6 +70,9 @@ interface TacticsEditorProps {
   onEditCustomPlayer: (player: Player) => void;
   onDeleteCustomPlayer: (id: string) => void;
   onSaveLineup: () => void;
+  onShareLineup?: () => void;
+  onOpenAdSenseGuide?: () => void;
+  onOpenLegal?: (tab: LegalTab) => void;
   isSaved?: boolean;
 }
 
@@ -77,6 +84,9 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
   onEditCustomPlayer,
   onDeleteCustomPlayer,
   onSaveLineup,
+  onShareLineup,
+  onOpenAdSenseGuide,
+  onOpenLegal,
   isSaved = false,
 }) => {
   // Full-screen presentation mode state
@@ -108,9 +118,6 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
 
   // Tactical Presets & Real Concepts panel
   const [showTacticalOptions, setShowTacticalOptions] = useState(false);
-
-  // AI Tactical Assistant panel
-  const [showAiAssistant, setShowAiAssistant] = useState(false);
 
   // Fullscreen event listener to sync with native exit
   useEffect(() => {
@@ -469,7 +476,6 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
 
     PRESET_FORMATIONS.push(customFormation);
     onUpdateLineup({ ...currentLineup, formationId: customId });
-    confetti({ particleCount: 35, spread: 50, origin: { y: 0.6 } });
   };
 
   // Reset current pitch to default formation coordinates
@@ -527,7 +533,6 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
       notes: tacticalNote,
     });
     setShowTacticalOptions(false);
-    confetti({ particleCount: 35, spread: 60 });
   };
 
   // Clear all players from pitch
@@ -677,14 +682,16 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
               {isDrawingMode && (
                 <div className="hidden lg:flex items-center gap-1 bg-[#0e1015] p-0.5 rounded-xl border border-[#222834]">
                   {[
-                    { id: 'curved-arrow' as AnnotationTool, label: 'Curved Run', icon: Footprints },
-                    { id: 'arrow' as AnnotationTool, label: 'Attack Arrow', icon: ArrowRight },
-                    { id: 'dashed-arrow' as AnnotationTool, label: 'Pass Lane', icon: Split },
-                    { id: 'pen' as AnnotationTool, label: 'Freehand', icon: Pencil },
-                    { id: 'movement' as AnnotationTool, label: 'Movement', icon: Minus },
-                    { id: 'circle' as AnnotationTool, label: 'Circle Zone', icon: CircleIcon },
+                    { id: 'dashed-arrow' as AnnotationTool, label: 'Pass Lane (Wide Gaps)', icon: Split, color: '#facc15' },
+                    { id: 'press-arrow' as AnnotationTool, label: 'Pressing (Zig-Zag)', icon: Zap, color: '#f43f5e' },
+                    { id: 'arrow' as AnnotationTool, label: 'Attack Run (Solid)', icon: ArrowRight, color: '#ffffff' },
+                    { id: 'dribble-arrow' as AnnotationTool, label: 'Dribble (Wavy)', icon: Waves, color: '#38bdf8' },
+                    { id: 'curved-arrow' as AnnotationTool, label: 'Curved Overlap', icon: Footprints, color: '#fb923c' },
+                    { id: 'cover-arrow' as AnnotationTool, label: 'Cover Run', icon: Shield, color: '#60a5fa' },
                     { id: 'rect' as AnnotationTool, label: 'Zonal Box', icon: Square },
-                    { id: 'highlight' as AnnotationTool, label: 'Highlight', icon: Sparkles },
+                    { id: 'circle' as AnnotationTool, label: 'Circle Zone', icon: CircleIcon },
+                    { id: 'highlight' as AnnotationTool, label: 'Spotlight', icon: Highlighter },
+                    { id: 'pen' as AnnotationTool, label: 'Freehand', icon: Pencil },
                     { id: 'text' as AnnotationTool, label: 'Text Tag', icon: Type },
                     { id: 'eraser' as AnnotationTool, label: 'Eraser', icon: Eraser },
                   ].map((t) => {
@@ -694,9 +701,12 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
                       <button
                         key={t.id}
                         type="button"
-                        onClick={() => setAnnotationTool(t.id)}
+                        onClick={() => {
+                          setAnnotationTool(t.id);
+                          if (t.color) setAnnotationColor(t.color);
+                        }}
                         title={t.label}
-                        className={`p-1.5 rounded-lg text-xs transition-all ${
+                        className={`p-1.5 rounded-lg text-xs transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40 shadow-sm'
                             : 'text-slate-400 hover:text-slate-200 hover:bg-[#1c202a]'
@@ -897,7 +907,7 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
             type="button"
             onClick={() => setShowLeftSidebar(!showLeftSidebar)}
             title={showLeftSidebar ? 'Collapse Tactics Panel (Enlarge Pitch)' : 'Show Tactics Panel'}
-            className={`p-2 sm:px-2.5 sm:py-1.5 rounded-xl border text-xs font-semibold hidden lg:flex items-center gap-1.5 transition-all ${
+            className={`p-2 sm:px-2.5 sm:py-1.5 rounded-lg border text-xs font-semibold hidden lg:flex items-center gap-1.5 transition-colors ${
               showLeftSidebar
                 ? 'bg-[#181c24] hover:bg-[#202530] border-[#262c38] text-slate-300'
                 : 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400'
@@ -912,7 +922,7 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
             type="button"
             onClick={() => setShowRightSidebar(!showRightSidebar)}
             title={showRightSidebar ? 'Collapse Player Panel (Enlarge Pitch)' : 'Show Player Panel'}
-            className={`p-2 sm:px-2.5 sm:py-1.5 rounded-xl border text-xs font-semibold hidden lg:flex items-center gap-1.5 transition-all ${
+            className={`p-2 sm:px-2.5 sm:py-1.5 rounded-lg border text-xs font-semibold hidden lg:flex items-center gap-1.5 transition-colors ${
               showRightSidebar
                 ? 'bg-[#181c24] hover:bg-[#202530] border-[#262c38] text-slate-300'
                 : 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400'
@@ -927,7 +937,7 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
             type="button"
             onClick={handleResetFormationPositions}
             title="Snap players back to default formation slots"
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[#181c24] hover:bg-[#202530] border border-[#262c38] text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
+            className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#181c24] hover:bg-[#202530] border border-[#262c38] text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Reset Slots</span>
@@ -938,7 +948,7 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
             type="button"
             onClick={handleClearPitch}
             title="Move all pitch players to bench"
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[#181c24] hover:bg-rose-600/80 border border-[#262c38] text-slate-400 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
+            className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#181c24] hover:bg-rose-600/80 border border-[#262c38] text-slate-400 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Clear Pitch</span>
@@ -949,7 +959,7 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
             type="button"
             onClick={() => setShowTacticalOptions(true)}
             title="Real Tactical Philosophies & Concepts (Gegenpressing, Tiki-Taka, Low Block...)"
-            className={`p-2 sm:px-3 sm:py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`p-2 sm:px-3 sm:py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               showTacticalOptions
                 ? 'bg-emerald-600 text-white border-emerald-500'
                 : 'bg-[#181c24] hover:bg-[#202530] border-[#262c38] text-slate-300 hover:text-white'
@@ -959,15 +969,20 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
             <span className="hidden sm:inline">Tactics</span>
           </button>
 
-          {/* AI Tactical Assistant */}
+          {/* Prominent Anonymous Share Lineup */}
           <button
             type="button"
-            onClick={() => setShowAiAssistant(true)}
-            title="AI Tactical Assistant & Lineup Analysis"
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-r from-emerald-600/90 to-teal-600/90 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950/40 border border-emerald-400/40 transition-all"
+            id="share-lineup-btn"
+            onClick={() => {
+              if (onShareLineup) {
+                onShareLineup();
+              }
+            }}
+            title="Share Lineup anonymously without an account"
+            className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 border border-emerald-500 transition-colors cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span className="hidden sm:inline">Tactical AI</span>
+            <Share2 className="w-3.5 h-3.5 text-white" />
+            <span className="hidden sm:inline">Share Lineup</span>
           </button>
 
           {/* Fullscreen Board Presentation */}
@@ -975,7 +990,7 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
             type="button"
             onClick={toggleFullscreen}
             title={isFullscreen ? 'Exit Fullscreen Presentation (Esc)' : 'Enter Fullscreen Presentation'}
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[#181c24] hover:bg-[#202530] border border-[#262c38] text-emerald-400 hover:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
+            className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#181c24] hover:bg-[#202530] border border-[#262c38] text-emerald-400 hover:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
             <span className="hidden sm:inline">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
@@ -1028,6 +1043,13 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
               onRedo={handleRedoAnnotation}
               onClear={handleClearAnnotations}
               annotationCount={currentLineup.annotations.length}
+              showActionLabels={currentLineup.displaySettings.showActionLabels !== false}
+              onToggleActionLabels={(show) =>
+                onUpdateLineup({
+                  ...currentLineup,
+                  displaySettings: { ...currentLineup.displaySettings, showActionLabels: show },
+                })
+              }
             />
 
             {/* Quick Tactics Notes Box */}
@@ -1042,6 +1064,14 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
                 value={currentLineup.notes || ''}
                 onChange={(e) => onUpdateLineup({ ...currentLineup, notes: e.target.value })}
                 className="bg-[#0e1015] border border-[#222834] rounded-lg p-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 resize-none"
+              />
+            </div>
+
+            {/* Sidebar Ad Placement */}
+            <div className="pt-2">
+              <AdBanner
+                format="rectangle"
+                onOpenAdSenseGuide={onOpenAdSenseGuide}
               />
             </div>
           </aside>
@@ -1233,6 +1263,13 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
                   onRedo={handleRedoAnnotation}
                   onClear={handleClearAnnotations}
                   annotationCount={currentLineup.annotations.length}
+                  showActionLabels={currentLineup.displaySettings.showActionLabels !== false}
+                  onToggleActionLabels={(show) =>
+                    onUpdateLineup({
+                      ...currentLineup,
+                      displaySettings: { ...currentLineup.displaySettings, showActionLabels: show },
+                    })
+                  }
                 />
               )}
 
@@ -1450,18 +1487,6 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
               onApplyTacticalStyle={handleApplyTacticalPreset}
               onUpdateNotes={(notes) => onUpdateLineup({ ...currentLineup, notes })}
               onClose={() => setShowTacticalOptions(false)}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* AI TACTICAL ASSISTANT MODAL */}
-      {showAiAssistant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
-          <div className="max-w-3xl w-full max-h-[90vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl border border-[#222834] bg-[#11141a]">
-            <AiTacticalAssistant
-              currentLineup={currentLineup}
-              onClose={() => setShowAiAssistant(false)}
             />
           </div>
         </div>

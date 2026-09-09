@@ -185,6 +185,8 @@ export type AnnotationTool =
   | 'dashed-arrow'
   | 'press-arrow'
   | 'curved-arrow'
+  | 'dribble-arrow'
+  | 'cover-arrow'
   | 'movement'
   | 'line'
   | 'circle'
@@ -206,6 +208,7 @@ export interface Annotation {
   points: AnnotationPoint[];
   radius?: number; // 0-100 %
   label?: string;
+  actionLabel?: string;
 }
 
 export type PitchTheme = 'emerald' | 'classic' | 'night' | 'tactical-board' | 'slate' | 'classic-grass';
@@ -227,6 +230,7 @@ export interface LineupDisplaySettings {
   showGrid?: boolean;
   showPlayerTrails?: boolean;
   snapToFormation?: boolean;
+  showActionLabels?: boolean;
 }
 
 export interface Lineup {

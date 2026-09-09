@@ -201,7 +201,7 @@ export const FootballPitch: React.FC<FootballPitchProps> = ({
       <div
         id="tactics-pitch-canvas"
         ref={pitchContainerRef}
-        className={`relative rounded-2xl overflow-hidden shadow-2xl border-4 transition-colors flex-shrink-0 ${getThemeClasses()}`}
+        className={`relative rounded-xl overflow-hidden border transition-colors flex-shrink-0 ${getThemeClasses()}`}
         onClick={handlePitchClick}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -211,7 +211,7 @@ export const FootballPitch: React.FC<FootballPitchProps> = ({
           aspectRatio: '680 / 1000',
           maxHeight: '100%',
           maxWidth: '100%',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0,0,0,0.35)',
+          boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.45)',
         }}
       >
         {/* Pitch Subtle Grass Texture Overlay */}
@@ -409,6 +409,7 @@ export const FootballPitch: React.FC<FootballPitchProps> = ({
           onDeleteAnnotation={onDeleteAnnotation}
           width={pitchSize.width > 0 ? pitchSize.width : 600}
           height={pitchSize.height > 0 ? pitchSize.height : 882}
+          showActionLabels={displaySettings.showActionLabels !== false}
         />
 
         {/* PLAYER MARKERS LAYER (Draggable on top of annotations) */}

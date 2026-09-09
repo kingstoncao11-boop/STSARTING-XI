@@ -13,11 +13,10 @@ export interface PlayerSearchParams {
   limit?: number;
 }
 
-export interface AssistantResponse {
+export interface ShareLineupResponse {
   success: boolean;
-  answer: string;
-  recommendedFormationId?: string;
-  recommendedPresetId?: string;
+  shareId?: string;
+  url?: string;
   error?: string;
 }
 
@@ -156,40 +155,52 @@ export const footballApi = {
     return PLAYER_ROLES;
   },
 
-  // AI Tactical Assistant consultation
-  async askTacticalAssistant(
-    message: string,
-    currentLineup?: Lineup,
-    formationId?: string
-  ): Promise<AssistantResponse> {
+  // Save lineup to persistent backend and get unique shareable URL
+  async shareLineup(lineup: Lineup): Promise<ShareLineupResponse> {
     try {
-      const res = await fetch('/api/tactics/ai-assistant', {
+      const res = await fetch('/api/lineups/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, currentLineup, formationId }),
+        body: JSON.stringify({ lineup }),
       });
-
       if (res.ok) {
         const data = await res.json();
-        return {
-          success: true,
-          answer: data.answer || 'Analysis completed.',
-          recommendedFormationId: data.recommendedFormationId,
-          recommendedPresetId: data.recommendedPresetId,
-        };
+        if (data.success) {
+          const fullUrl = `${window.location.origin}${data.url}`;
+          return {
+            success: true,
+            shareId: data.shareId,
+            url: fullUrl,
+          };
+        }
       }
       const errJson = await res.json().catch(() => ({}));
       return {
         success: false,
-        answer: '',
-        error: errJson.error || 'Server error communicating with AI Assistant.',
+        error: errJson.error || 'Could not save lineup to server.',
       };
     } catch (err: any) {
+      console.error('Error sharing lineup:', err);
       return {
         success: false,
-        answer: '',
-        error: 'Network error connecting to backend AI Assistant.',
+        error: 'Network connection failed while sharing lineup.',
       };
     }
+  },
+
+  // Retrieve shared lineup from persistent backend by token
+  async getSharedLineup(shareId: string): Promise<Lineup | null> {
+    try {
+      const res = await fetch(`/api/lineups/shared/${encodeURIComponent(shareId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.lineup) {
+          return data.lineup as Lineup;
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching shared lineup:', err);
+    }
+    return null;
   },
 };

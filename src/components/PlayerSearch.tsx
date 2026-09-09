@@ -66,14 +66,17 @@ export const PlayerSearch: React.FC<PlayerSearchProps> = ({
 
   // Filtered Players
   const filteredPlayers = useMemo(() => {
+    const norm = (s: string) =>
+      (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[ø]/g, 'o').replace(/[æ]/g, 'ae');
+    const query = norm(searchTerm.trim());
+
     return allPlayers.filter((p) => {
       // Search term matching
-      if (searchTerm.trim()) {
-        const query = searchTerm.toLowerCase();
-        const matchName = p.name.toLowerCase().includes(query) || p.shortName.toLowerCase().includes(query);
-        const matchClub = p.club.toLowerCase().includes(query);
-        const matchNat = p.nationality.toLowerCase().includes(query);
-        const matchPos = p.position.toLowerCase().includes(query);
+      if (query) {
+        const matchName = norm(p.name).includes(query) || norm(p.shortName).includes(query);
+        const matchClub = norm(p.club).includes(query);
+        const matchNat = norm(p.nationality).includes(query);
+        const matchPos = norm(p.position).includes(query);
         if (!matchName && !matchClub && !matchNat && !matchPos) return false;
       }
 

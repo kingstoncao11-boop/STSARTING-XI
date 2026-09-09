@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lineup } from '../types';
 import { encodeLineupToURL } from '../utils/storage';
-import { X, Share2, Copy, Check, FileJson, Upload, Link2 } from 'lucide-react';
+import { footballApi } from '../services/footballApi';
+import { X, Share2, Copy, Check, FileJson, Upload, Link2, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface ShareModalProps {
@@ -19,10 +20,34 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedJson, setCopiedJson] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Immediately compute fallback URL
+    const fallback = encodeLineupToURL(lineup);
+    setShareUrl(fallback);
+
+    // Call backend to store persistently and obtain clean /lineup/:shareId URL
+    let isCancelled = false;
+    setIsGenerating(true);
+    footballApi.shareLineup(lineup).then((res) => {
+      if (!isCancelled && res.success && res.url) {
+        setShareUrl(res.url);
+      }
+      setIsGenerating(false);
+    }).catch(() => {
+      if (!isCancelled) setIsGenerating(false);
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOpen, lineup]);
 
   if (!isOpen) return null;
-
-  const shareUrl = encodeLineupToURL(lineup);
 
   const handleCopyLink = async () => {
     try {
@@ -107,7 +132,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               {copiedLink ? (
                 <>
                   <Check className="w-3.5 h-3.5" />
-                  <span>Copied!</span>
+                  <span>Lineup link copied!</span>
                 </>
               ) : (
                 <>
@@ -117,8 +142,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               )}
             </button>
           </div>
+          {copiedLink && (
+            <p className="text-xs text-emerald-400 font-semibold flex items-center gap-1 mt-1 animate-in fade-in">
+              <Check className="w-3.5 h-3.5" />
+              <span>Lineup link copied to clipboard!</span>
+            </p>
+          )}
           <p className="text-[11px] text-slate-500 mt-0.5">
-            Anyone with this link will immediately load your full Starting XI setup, positions, and tactical drawings.
+            Anyone with this link will immediately load your full Starting XI setup, positions, and tactical drawings without signing in.
           </p>
         </div>
 

@@ -67,23 +67,23 @@ export const TacticalOptionsPanel: React.FC<TacticalOptionsPanelProps> = ({
   });
 
   return (
-    <div className="bg-[#121622] border border-[#222838] rounded-2xl overflow-hidden shadow-xl flex flex-col h-full">
+    <div className="bg-[#121622] border border-[#222838] rounded-xl overflow-hidden shadow-md flex flex-col h-full">
       {/* Top Segment Tabs */}
-      <div className="p-3 bg-[#151a28] border-b border-[#222838] flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 bg-[#0e121c] p-1 rounded-xl border border-[#222838] w-full">
+      <div className="p-2.5 bg-[#151a28] border-b border-[#222838] flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1 bg-[#0e121c] p-1 rounded-lg border border-[#222838] w-full">
           <button
             type="button"
             onClick={() => {
               setActiveTab('presets');
               setSelectedCategory('All');
             }}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+            className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
               activeTab === 'presets'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-emerald-600 text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sliders className="w-3.5 h-3.5" />
             <span>Tactical Presets ({presets.length})</span>
           </button>
 
@@ -93,9 +93,9 @@ export const TacticalOptionsPanel: React.FC<TacticalOptionsPanelProps> = ({
               setActiveTab('concepts');
               setSelectedCategory('All');
             }}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+            className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
               activeTab === 'concepts'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-emerald-600 text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -109,9 +109,9 @@ export const TacticalOptionsPanel: React.FC<TacticalOptionsPanelProps> = ({
               setActiveTab('roles');
               setSelectedCategory('All');
             }}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+            className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
               activeTab === 'roles'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-emerald-600 text-white'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -193,15 +193,15 @@ export const TacticalOptionsPanel: React.FC<TacticalOptionsPanelProps> = ({
               return (
                 <div
                   key={preset.id}
-                  className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                  className={`p-3 rounded-lg border transition-colors flex flex-col justify-between ${
                     isActive
-                      ? 'bg-emerald-950/20 border-emerald-500 shadow-md ring-1 ring-emerald-500/30'
+                      ? 'bg-emerald-950/20 border-emerald-500 shadow-sm'
                       : 'bg-[#161a27] border-[#252c3e] hover:border-[#353f58]'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-white flex items-center gap-1.5">
                         {preset.name}
                       </h4>
                       <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-[#1e2436] text-emerald-400 border border-[#2b344d]">
@@ -214,7 +214,7 @@ export const TacticalOptionsPanel: React.FC<TacticalOptionsPanelProps> = ({
                     </p>
 
                     {/* Tactical Specifications */}
-                    <div className="grid grid-cols-2 gap-1.5 text-[10px] mb-3 bg-[#0d1017] p-2 rounded-lg border border-[#1f2536]">
+                    <div className="grid grid-cols-2 gap-1.5 text-[10px] mb-3 bg-[#0d1017] p-2 rounded border border-[#1f2536]">
                       <div>
                         <span className="text-slate-500 block">Defensive Line:</span>
                         <span className="text-slate-200 font-medium">{preset.tacticalInstructions.defensiveLine}</span>
@@ -233,9 +233,9 @@ export const TacticalOptionsPanel: React.FC<TacticalOptionsPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => onApplyPreset(preset)}
-                    className={`w-full py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`w-full py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-emerald-600 text-white shadow-sm'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-[#212739] hover:bg-emerald-600 text-slate-200 hover:text-white border border-[#2e374f]'
                     }`}
                   >
@@ -246,7 +246,7 @@ export const TacticalOptionsPanel: React.FC<TacticalOptionsPanelProps> = ({
                       </>
                     ) : (
                       <>
-                        <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                        <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
                         <span>Apply Preset to Pitch</span>
                       </>
                     )}

@@ -18,7 +18,12 @@ import {
   saveCustomPlayer,
   deleteCustomPlayerFromStorage,
   decodeLineupFromURL,
+  encodeLineupToURL,
+  hydrateAndVerifyLineup,
 } from './utils/storage';
+import { footballApi } from './services/footballApi';
+import { Check } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 // Components
 import { Navigation } from './components/Navigation';
@@ -29,6 +34,10 @@ import { LineupManager } from './components/LineupManager';
 import { ExportModal } from './components/ExportModal';
 import { ShareModal } from './components/ShareModal';
 import { CustomPlayerModal } from './components/CustomPlayerModal';
+import { LegalModal, LegalTab } from './components/LegalModal';
+import { CookieBanner } from './components/CookieBanner';
+import { AdSenseConfigModal } from './components/AdSenseConfigModal';
+import { Footer } from './components/Footer';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('tactics');
@@ -36,6 +45,7 @@ export default function App() {
   const [currentLineup, setCurrentLineup] = useState<Lineup>(DEFAULT_LINEUP);
   const [customPlayers, setCustomPlayers] = useState<Player[]>([]);
   const [isSaved, setIsSaved] = useState(true);
+  const [shareToast, setShareToast] = useState<string | null>(null);
 
   // Modals
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -43,20 +53,64 @@ export default function App() {
   const [isCustomPlayerModalOpen, setIsCustomPlayerModalOpen] = useState(false);
   const [editingCustomPlayer, setEditingCustomPlayer] = useState<Player | null>(null);
 
+  // Legal & AdSense Modals
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [legalModalTab, setLegalModalTab] = useState<LegalTab>('privacy');
+  const [isAdSenseConfigModalOpen, setIsAdSenseConfigModalOpen] = useState(false);
+
+  const handleOpenLegal = useCallback((tab: LegalTab = 'privacy') => {
+    setLegalModalTab(tab);
+    setIsLegalModalOpen(true);
+  }, []);
+
+  const handleOpenAdSenseGuide = useCallback(() => {
+    setIsAdSenseConfigModalOpen(true);
+  }, []);
+
   // Load Initial Data from Storage & Check URL for Shared Lineup
   useEffect(() => {
-    // 1. Check if URL has shared tactics data
-    const sharedLineup = decodeLineupFromURL();
-    if (sharedLineup) {
-      setCurrentLineup(sharedLineup);
-      setActiveTab('tactics');
-    }
+    const checkInitialLineup = async () => {
+      // 1. Check if URL is a shared lineup link (/lineup/:id or ?share=:id)
+      let shareId = '';
+      const path = window.location.pathname;
+      if (path.startsWith('/lineup/')) {
+        shareId = path.replace('/lineup/', '').split('/')[0].trim();
+      } else {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('share')) {
+          shareId = params.get('share') || '';
+        }
+      }
 
-    // 2. Load Saved Lineups
+      if (shareId) {
+        try {
+          const shared = await footballApi.getSharedLineup(shareId);
+          if (shared) {
+            const verified = hydrateAndVerifyLineup(shared);
+            setCurrentLineup(verified);
+            setActiveTab('tactics');
+            return;
+          }
+        } catch (e) {
+          console.warn('Could not load shared lineup by token:', e);
+        }
+      }
+
+      // 2. Check if URL has encoded lineup data
+      const sharedLineup = decodeLineupFromURL();
+      if (sharedLineup) {
+        setCurrentLineup(sharedLineup);
+        setActiveTab('tactics');
+      }
+    };
+
+    checkInitialLineup();
+
+    // 3. Load Saved Lineups
     const storedLineups = loadSavedLineups();
     setLineups(storedLineups);
 
-    // 3. Load Custom Players
+    // 4. Load Custom Players
     const storedCustomPlayers = loadCustomPlayers();
     setCustomPlayers(storedCustomPlayers);
   }, []);
@@ -167,6 +221,28 @@ export default function App() {
     setIsShareModalOpen(true);
   };
 
+  const handleShareLineup = async () => {
+    try {
+      const res = await footballApi.shareLineup(currentLineup);
+      const urlToCopy = res.url || encodeLineupToURL(currentLineup);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(urlToCopy);
+      }
+      setShareToast('Lineup link copied!');
+      setTimeout(() => setShareToast(null), 3000);
+      setIsShareModalOpen(true);
+    } catch (e) {
+      console.error('Error sharing lineup:', e);
+      const fallbackUrl = encodeLineupToURL(currentLineup);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(fallbackUrl);
+      }
+      setShareToast('Lineup link copied!');
+      setTimeout(() => setShareToast(null), 3000);
+      setIsShareModalOpen(true);
+    }
+  };
+
   const handleImportLineup = (imported: Lineup) => {
     const withNewId = {
       ...imported,
@@ -227,8 +303,10 @@ export default function App() {
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         onOpenExportModal={() => setIsExportModalOpen(true)}
-        onOpenShareModal={() => setIsShareModalOpen(true)}
+        onOpenShareModal={handleShareLineup}
         onSaveCurrentLineup={handleSaveCurrentLineup}
+        onOpenLegal={handleOpenLegal}
+        onOpenAdSenseGuide={handleOpenAdSenseGuide}
         isSaved={isSaved}
       />
 
@@ -241,6 +319,8 @@ export default function App() {
               onSelectLineupTemplate={(tpl) => {
                 handleOpenLineup(tpl);
               }}
+              onOpenLegal={handleOpenLegal}
+              onOpenAdSenseGuide={handleOpenAdSenseGuide}
             />
           </div>
         )}
@@ -257,12 +337,15 @@ export default function App() {
             onEditCustomPlayer={handleEditCustomPlayer}
             onDeleteCustomPlayer={handleDeleteCustomPlayer}
             onSaveLineup={handleSaveCurrentLineup}
+            onShareLineup={handleShareLineup}
+            onOpenAdSenseGuide={handleOpenAdSenseGuide}
+            onOpenLegal={handleOpenLegal}
             isSaved={isSaved}
           />
         )}
 
         {activeTab === 'players' && (
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto flex flex-col justify-between">
             <PlayerDatabaseView
               allPlayers={allPlayers}
               onAddToLineup={handleAddPlayerFromDatabase}
@@ -273,11 +356,15 @@ export default function App() {
               onEditCustomPlayer={handleEditCustomPlayer}
               onDeleteCustomPlayer={handleDeleteCustomPlayer}
             />
+            <Footer
+              onOpenLegal={handleOpenLegal}
+              onOpenAdSenseGuide={handleOpenAdSenseGuide}
+            />
           </div>
         )}
 
         {activeTab === 'lineups' && (
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto flex flex-col justify-between">
             <LineupManager
               lineups={lineups}
               onOpenLineup={handleOpenLineup}
@@ -285,6 +372,10 @@ export default function App() {
               onDuplicateLineup={handleDuplicateLineup}
               onShareLineup={handleShareLineupFromManager}
               onDeleteLineup={handleDeleteLineup}
+            />
+            <Footer
+              onOpenLegal={handleOpenLegal}
+              onOpenAdSenseGuide={handleOpenAdSenseGuide}
             />
           </div>
         )}
@@ -318,6 +409,37 @@ export default function App() {
           onSavePlayer={handleSaveCustomPlayer}
           editingPlayer={editingCustomPlayer}
         />
+      )}
+
+      {/* Legal Modal (Privacy Policy, Terms of Service, About, AdSense Transparency) */}
+      <LegalModal
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
+        initialTab={legalModalTab}
+      />
+
+      {/* AdSense Setup & Monetization Assistant */}
+      <AdSenseConfigModal
+        isOpen={isAdSenseConfigModalOpen}
+        onClose={() => setIsAdSenseConfigModalOpen(false)}
+        onOpenLegalModal={() => {
+          setIsAdSenseConfigModalOpen(false);
+          handleOpenLegal('privacy');
+        }}
+      />
+
+      {/* GDPR / CCPA Cookie & Ad Consent Banner */}
+      <CookieBanner onOpenPrivacyPolicy={() => handleOpenLegal('privacy')} />
+
+      {/* Share Confirmation Toast */}
+      {shareToast && (
+        <div
+          id="share-notification-toast"
+          className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-slate-100 font-semibold text-xs px-3.5 py-2 rounded-lg shadow-xl flex items-center gap-2 border border-slate-700 animate-in fade-in slide-in-from-top-2 duration-150 pointer-events-none"
+        >
+          <Check className="w-3.5 h-3.5 text-emerald-400" />
+          <span>{shareToast}</span>
+        </div>
       )}
     </div>
   );

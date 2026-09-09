@@ -1,12 +1,12 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI } from '@google/genai';
 import { INITIAL_PLAYERS } from './src/data/players.ts';
 import { PRESET_FORMATIONS } from './src/data/formations.ts';
 import { TACTICAL_CONCEPTS, PRELOADED_TACTICAL_PRESETS, PLAYER_ROLES } from './src/data/tactics.ts';
-import { Player } from './src/types.ts';
+import { Player, Lineup } from './src/types.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -71,7 +71,95 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     apiFootballConfigured: Boolean(process.env.API_FOOTBALL_KEY || process.env.RAPIDAPI_KEY),
-    geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
+  });
+});
+
+// -----------------------------------------------------------------
+// ANONYMOUS PERSISTENT LINEUP SHARING
+// -----------------------------------------------------------------
+const SHARED_LINEUPS_FILE = path.join(process.cwd(), 'data', 'shared_lineups.json');
+let sharedLineupsStore: Record<string, { lineup: Lineup; createdAt: string }> = {};
+
+function initSharedLineups() {
+  try {
+    const dir = path.dirname(SHARED_LINEUPS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    if (fs.existsSync(SHARED_LINEUPS_FILE)) {
+      const data = fs.readFileSync(SHARED_LINEUPS_FILE, 'utf8');
+      sharedLineupsStore = JSON.parse(data);
+    }
+  } catch (err) {
+    console.warn('Initialized shared lineups store (in-memory):', err);
+    sharedLineupsStore = {};
+  }
+}
+initSharedLineups();
+
+function persistSharedLineups() {
+  try {
+    const dir = path.dirname(SHARED_LINEUPS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(SHARED_LINEUPS_FILE, JSON.stringify(sharedLineupsStore, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Failed to write shared lineups to disk:', err);
+  }
+}
+
+// Generate URL-safe random token (e.g. "k9x2m4q8")
+function generateShareToken(): string {
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  let token = '';
+  for (let i = 0; i < 9; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
+// Create anonymous shared lineup
+app.post('/api/lineups/share', (req: Request, res: Response) => {
+  try {
+    const { lineup } = req.body;
+    if (!lineup || !Array.isArray(lineup.players)) {
+      return res.status(400).json({ success: false, error: 'Invalid lineup payload' });
+    }
+
+    let shareId = generateShareToken();
+    while (sharedLineupsStore[shareId]) {
+      shareId = generateShareToken();
+    }
+
+    sharedLineupsStore[shareId] = {
+      lineup,
+      createdAt: new Date().toISOString(),
+    };
+    persistSharedLineups();
+
+    return res.json({
+      success: true,
+      shareId,
+      url: `/lineup/${shareId}`,
+    });
+  } catch (err: any) {
+    console.error('Error sharing lineup:', err);
+    return res.status(500).json({ success: false, error: 'Failed to share lineup' });
+  }
+});
+
+// Retrieve anonymous shared lineup
+app.get('/api/lineups/shared/:shareId', (req: Request, res: Response) => {
+  const { shareId } = req.params;
+  const record = sharedLineupsStore[shareId];
+  if (!record) {
+    return res.status(404).json({ success: false, error: 'Lineup not found' });
+  }
+  return res.json({
+    success: true,
+    lineup: record.lineup,
+    createdAt: record.createdAt,
   });
 });
 
@@ -154,12 +242,15 @@ app.get('/api/players/search', async (req: Request, res: Response) => {
 
     // Apply strict filtering
     if (q) {
+      const norm = (s: string) =>
+        (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[ø]/g, 'o').replace(/[æ]/g, 'ae');
+      const normQ = norm(q);
       matchedPlayers = matchedPlayers.filter((p) => {
-        const nameMatch = p.name.toLowerCase().includes(q) || p.shortName.toLowerCase().includes(q);
-        const clubMatch = p.club.toLowerCase().includes(q);
-        const natMatch = p.nationality.toLowerCase().includes(q);
-        const leagueMatch = p.league.toLowerCase().includes(q);
-        const posMatch = p.position.toLowerCase() === q;
+        const nameMatch = norm(p.name).includes(normQ) || norm(p.shortName).includes(normQ);
+        const clubMatch = norm(p.club).includes(normQ);
+        const natMatch = norm(p.nationality).includes(normQ);
+        const leagueMatch = norm(p.league).includes(normQ);
+        const posMatch = p.position.toLowerCase() === q.toLowerCase();
         return nameMatch || clubMatch || natMatch || leagueMatch || posMatch;
       });
     }
@@ -286,108 +377,6 @@ app.get('/api/tactics/roles', (req: Request, res: Response) => {
   res.json({ success: true, roles: PLAYER_ROLES });
 });
 
-// AI Tactical Assistant (Powered by server-side Gemini @google/genai)
-app.post('/api/tactics/ai-assistant', async (req: Request, res: Response) => {
-  try {
-    const { message, currentLineup, formationId, history } = req.body;
-
-    if (!message || typeof message !== 'string') {
-      return res.status(400).json({ success: false, error: 'Query message is required.' });
-    }
-
-    // Lazy initialization of Gemini client
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      // Provide intelligent fallback from real database principles if key is not yet set
-      const lower = message.toLowerCase();
-      let fallbackResponse = '';
-
-      if (lower.includes('4-3-3') && (lower.includes('against') || lower.includes('counter') || lower.includes('beat'))) {
-        fallbackResponse = `**Tactical Counter to 4-3-3:**\n\n* **Optimal Formations:** **3-5-2** or **4-2-3-1**.\n* **Midfield Dominance:** In a 3-5-2 or 4-2-3-1, your central midfield trio/pivot outnumbers and controls the 4-3-3 single pivot (#6).\n* **Exploiting Wide Spaces:** Because 4-3-3 wingers push high and wide, the space behind their fullbacks is vulnerable to quick diagonal transitions.\n* **Defensive Key:** Double up on their isolated wingers with fullback + wide midfielder support.\n\n*(Note: Add your GEMINI_API_KEY in Settings to enable dynamic interactive tactical simulations.)*`;
-      } else if (lower.includes('3-2-4-1') || lower.includes('box midfield')) {
-        fallbackResponse = `**How 3-2-4-1 Builds Up:**\n\n* **Phase 1 (First Line):** 3 center-backs circulate the ball, drawing the opponent's first pressing wave.\n* **Phase 2 (Box Midfield):** Two holding pivots (one often an Inverted Fullback) paired with two attacking #10s create numerical overloads in the central channels.\n* **Phase 3 (Isolation & Overload):** Wide wingers pin opposition fullbacks to the touchline, creating 1v1 dribbling duels or cutback lanes into the penalty box.\n* **Rest Defense:** The 3+2 base immediately snuffs out counter-attacks upon loss of possession.`;
-      } else if (lower.includes('inverted fullback') || lower.includes('wingback')) {
-        fallbackResponse = `**Inverted Fullback vs. Wingback:**\n\n* **Wingback:** Operates vertically along the entire touchline, providing maximum width in attack and recovering as an auxiliary wide defender in a 5-man backline.\n* **Inverted Fullback:** Tucks inside into the central midfield channel during possession, forming a double pivot to control game tempo and secure rest defense against central counters.`;
-      } else if (lower.includes('high press') || lower.includes('pressing')) {
-        fallbackResponse = `**High Press Mechanics:**\n\n* **Trigger Points:** Opposition back passes, touches toward the sideline, or heavy first touches.\n* **Structure:** Front three angle their runs to force the opposition toward their weaker flank, while the midfield steps up to intercept the first forward escape pass.\n* **Defensive Line:** Must push up to 65–70% of the pitch to eliminate space between lines.`;
-      } else if (lower.includes('false 9')) {
-        fallbackResponse = `**False 9 Strategy:**\n\n* **Movement:** Drops 15–20 yards deep into the pocket between defense and midfield.\n* **Dilemma for Center-Backs:** If the defender follows, huge space is opened for inverted wingers to sprint in behind; if the defender stays, the False 9 receives on the half-turn with time to shoot or thread passes.`;
-      } else {
-        fallbackResponse = `**UEFA Pro Tactical Analysis:**\n\n* **Active Formation:** ${formationId || '4-3-3'}\n* **Key Principles:** Maintain balance between horizontal width (stretching the block) and central compactness.\n* **Data Integrity Notice:** All tactical options and positional roles are strictly derived from verified football tactical concepts. No speculative or hallucinated player data is utilized.\n\n*(Connect your GEMINI_API_KEY in project Settings for real-time natural language tactical dialogue.)*`;
-      }
-
-      return res.json({
-        success: true,
-        answer: fallbackResponse,
-        recommendedFormationId: lower.includes('3-5-2') ? '3-5-2' : lower.includes('3-2-4-1') ? '3-2-4-1' : lower.includes('4-2-3-1') ? '4-2-3-1' : undefined,
-        recommendedPresetId: lower.includes('high press') ? 'high-press' : lower.includes('low block') ? 'low-block' : lower.includes('gegenpress') ? 'gegenpress' : undefined,
-      });
-    }
-
-    // Call Gemini with full factual context
-    const ai = new GoogleGenAI({ apiKey });
-
-    // Format current squad context factual data
-    const playersSummary = Array.isArray(currentLineup?.players)
-      ? currentLineup.players
-          .map((p: any) => `${p.player.shortName} (${p.player.position}, Club: ${p.player.club}, Nat: ${p.player.nationality}, Rating: ${p.player.rating}, Role: ${p.tacticalRole || 'Standard'})`)
-          .join('; ')
-      : 'Standard Starting XI';
-
-    const systemPrompt = `You are an elite, UEFA Pro License Football Tactician and Tactical Assistant.
-You have access to a verified database of football formations (such as 4-3-3, 3-2-4-1, 4-2-3-1, 3-5-2, 5-4-1, 4-4-2, etc.), real tactical presets (High press, Low block, Gegenpress, Tiki-taka, Counter-attack, etc.), and 22 canonical player tactical roles.
-
-CRITICAL DIRECTIVES:
-1. DATA ACCURACY: Ground every statement in real football theory, official tactics, and the exact players provided.
-2. NO HALLUCINATION: DO NOT invent fake stats, imaginary players, or fake attributes. If information is not provided or unknown, state explicitly: "Data not available for this player/team."
-3. PRACTICAL RECOMMENDATIONS: Offer concrete advice on pressing schemes, build-up patterns, player roles, and counter-tactics.
-4. ACTIONABLE: If you recommend a specific formation or preset, name it clearly.
-Format your response with clear markdown headings, bullet points, and high readability.`;
-
-    const userPrompt = `Current Formation: ${formationId || '4-3-3'}
-Current Lineup Players: ${playersSummary}
-User Question: "${message}"`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: [
-        { role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }
-      ],
-    });
-
-    const answerText = response.text || 'Tactical analysis complete.';
-
-    // Check if a specific formation or preset was recommended
-    let recFormation: string | undefined = undefined;
-    let recPreset: string | undefined = undefined;
-    const lowerAns = answerText.toLowerCase();
-
-    if (lowerAns.includes('3-2-4-1')) recFormation = '3-2-4-1';
-    else if (lowerAns.includes('3-5-2')) recFormation = '3-5-2';
-    else if (lowerAns.includes('4-2-3-1')) recFormation = '4-2-3-1';
-    else if (lowerAns.includes('5-4-1')) recFormation = '5-4-1';
-    else if (lowerAns.includes('4-4-2')) recFormation = '4-4-2';
-
-    if (lowerAns.includes('high press')) recPreset = 'high-press';
-    else if (lowerAns.includes('low block')) recPreset = 'low-block';
-    else if (lowerAns.includes('gegenpress')) recPreset = 'gegenpress';
-    else if (lowerAns.includes('tiki-taka')) recPreset = 'tiki-taka';
-
-    res.json({
-      success: true,
-      answer: answerText,
-      recommendedFormationId: recFormation,
-      recommendedPresetId: recPreset,
-    });
-  } catch (err: any) {
-    console.error('Gemini AI Assistant error:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to process tactical query. Check GEMINI_API_KEY configuration.',
-    });
-  }
-});
-
 // -----------------------------------------------------------------
 // VITE MIDDLEWARE / PRODUCTION SERVING
 // -----------------------------------------------------------------
@@ -408,7 +397,7 @@ async function start() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Tactics & Lineup Server running at http://0.0.0.0:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 

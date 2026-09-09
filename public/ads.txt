@@ -1,0 +1,5 @@
+# Google AdSense Authorized Digital Sellers (ads.txt)
+# Google requires this file at the root of your custom domain (e.g. https://yourdomain.com/ads.txt)
+# Replace pub-0000000000000000 with your actual AdSense Publisher ID (found in AdSense > Account > Settings)
+
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

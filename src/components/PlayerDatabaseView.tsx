@@ -60,13 +60,16 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   }, [allPlayers]);
 
   const filteredPlayers = useMemo(() => {
+    const norm = (s: string) =>
+      (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[ø]/g, 'o').replace(/[æ]/g, 'ae');
+    const q = norm(searchTerm.trim());
+
     return allPlayers.filter((p) => {
-      if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase();
-        const matchName = p.name.toLowerCase().includes(q) || p.shortName.toLowerCase().includes(q);
-        const matchClub = p.club.toLowerCase().includes(q);
-        const matchNat = p.nationality.toLowerCase().includes(q);
-        const matchPos = p.position.toLowerCase().includes(q);
+      if (q) {
+        const matchName = norm(p.name).includes(q) || norm(p.shortName).includes(q);
+        const matchClub = norm(p.club).includes(q);
+        const matchNat = norm(p.nationality).includes(q);
+        const matchPos = norm(p.position).includes(q);
         if (!matchName && !matchClub && !matchNat && !matchPos) return false;
       }
 

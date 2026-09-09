@@ -62,7 +62,7 @@ export const PlayerMarker: React.FC<PlayerMarkerProps> = memo(({
         {/* Captain Armband Badge */}
         {isCaptain && (
           <div
-            className="absolute -top-2.5 -right-2.5 z-30 bg-amber-400 text-slate-950 font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-lg border-2 border-slate-900 ring-1 ring-amber-300 animate-pulse"
+            className="absolute -top-2 -right-2 z-30 bg-amber-400 text-slate-950 font-black text-[10px] w-4.5 h-4.5 rounded-full flex items-center justify-center shadow border border-slate-950"
             title="Team Captain"
           >
             C
@@ -71,7 +71,7 @@ export const PlayerMarker: React.FC<PlayerMarkerProps> = memo(({
 
         {/* Rating Pill Top Left */}
         {displaySettings.showRatings && player.rating && (
-          <div className="absolute -top-2 -left-2 z-30 bg-[#12151c] text-emerald-400 font-bold text-[9px] px-1.5 py-0.5 rounded-full border border-[#262c38] shadow flex items-center gap-0.5">
+          <div className="absolute -top-2 -left-2 z-30 bg-[#12151c] text-emerald-400 font-bold text-[9px] px-1.5 py-0.2 rounded-full border border-[#262c38] shadow flex items-center gap-0.5">
             <span>{player.rating}</span>
           </div>
         )}
@@ -81,8 +81,8 @@ export const PlayerMarker: React.FC<PlayerMarkerProps> = memo(({
           <div
             className={`relative rounded-full p-0.5 transition-all ${
               isSelected
-                ? 'ring-3 ring-emerald-400 ring-offset-2 ring-offset-[#0b0d11] shadow-xl'
-                : 'ring-1 ring-white/20 shadow-md group-hover:ring-white/50'
+                ? 'ring-2 ring-emerald-400 ring-offset-1 ring-offset-[#0b0d11] shadow-md'
+                : 'ring-1 ring-white/25 shadow-sm group-hover:ring-white/50'
             }`}
             style={{ backgroundColor: kitColor }}
           >
@@ -97,16 +97,16 @@ export const PlayerMarker: React.FC<PlayerMarkerProps> = memo(({
                   onError={() => setImgError(true)}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1b202a] to-[#0f1115] text-slate-200 font-black text-xs font-mono">
+                <div className="w-full h-full flex items-center justify-center bg-[#181c24] text-slate-200 font-black text-xs font-mono">
                   {initials}
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
 
               {/* Number overlay on bottom of avatar */}
               {displaySettings.showNumbers && (
                 <div
-                  className="absolute bottom-0 inset-x-0 py-0.5 text-center text-[10px] font-black leading-none bg-slate-950/85 text-white"
+                  className="absolute bottom-0 inset-x-0 py-0.5 text-center text-[10px] font-black leading-none bg-slate-950/90 text-white"
                 >
                   #{shirtNumber}
                 </div>
@@ -119,8 +119,8 @@ export const PlayerMarker: React.FC<PlayerMarkerProps> = memo(({
           <div
             className={`w-11 h-11 sm:w-12 sm:h-12 rounded-lg flex flex-col items-center justify-center transition-all relative border ${
               isSelected
-                ? 'ring-3 ring-emerald-400 ring-offset-2 ring-offset-[#0b0d11] scale-105 shadow-xl'
-                : 'shadow-md group-hover:brightness-110'
+                ? 'ring-2 ring-emerald-400 ring-offset-1 ring-offset-[#0b0d11] scale-105 shadow-md'
+                : 'shadow-sm group-hover:brightness-110'
             }`}
             style={{
               backgroundColor: kitColor,
@@ -143,8 +143,8 @@ export const PlayerMarker: React.FC<PlayerMarkerProps> = memo(({
           <div
             className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex flex-col items-center justify-center border-2 transition-all ${
               isSelected
-                ? 'ring-3 ring-emerald-400 ring-offset-2 ring-offset-[#0b0d11] bg-[#12151c] border-emerald-400 shadow-xl'
-                : 'bg-[#12151c] border-[#262c38] shadow-md group-hover:border-[#3a4456]'
+                ? 'ring-2 ring-emerald-400 ring-offset-1 ring-offset-[#0b0d11] bg-[#12151c] border-emerald-400 shadow-md'
+                : 'bg-[#12151c] border-[#262c38] shadow-sm group-hover:border-[#3a4456]'
             }`}
           >
             <div className="text-[12px] font-black text-white leading-none">
@@ -158,9 +158,9 @@ export const PlayerMarker: React.FC<PlayerMarkerProps> = memo(({
 
         {markerStyle === 'minimal' && (
           <div
-            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border ${
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border ${
               isSelected
-                ? 'ring-2 ring-emerald-400 ring-offset-1 ring-offset-[#0b0d11] scale-110'
+                ? 'ring-2 ring-emerald-400 ring-offset-1 ring-offset-[#0b0d11] scale-105'
                 : 'border-black/30 group-hover:scale-105'
             }`}
             style={{ backgroundColor: kitColor, color: textColor }}
@@ -173,10 +173,10 @@ export const PlayerMarker: React.FC<PlayerMarkerProps> = memo(({
         {displaySettings.showNames && (
           <div className="mt-1 flex flex-col items-center pointer-events-none">
             <div
-              className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold tracking-tight shadow-md whitespace-nowrap border flex items-center gap-1 backdrop-blur-sm ${
+              className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold tracking-tight shadow-sm whitespace-nowrap border flex items-center gap-1 ${
                 isSelected
-                  ? 'bg-[#12151c] text-emerald-300 border-emerald-500/80 shadow-emerald-950/50 ring-1 ring-emerald-400/40'
-                  : 'bg-[#0e1015]/90 text-slate-100 border-[#222834]'
+                  ? 'bg-[#0e1015] text-emerald-300 border-emerald-500'
+                  : 'bg-[#0e1015]/95 text-slate-100 border-[#222834]'
               }`}
             >
               {displaySettings.showPositions && (

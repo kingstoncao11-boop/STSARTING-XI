@@ -16,13 +16,23 @@ import {
   Cpu
 } from 'lucide-react';
 import { SAMPLE_SAVED_LINEUPS } from '../data/defaultLineups';
+import { LegalTab } from './LegalModal';
+import { AdBanner } from './AdBanner';
+import { Footer } from './Footer';
 
 interface HomeProps {
   onNavigate: (tab: ActiveTab) => void;
   onSelectLineupTemplate: (lineup: Lineup) => void;
+  onOpenLegal?: (tab: LegalTab) => void;
+  onOpenAdSenseGuide?: () => void;
 }
 
-export const Home: React.FC<HomeProps> = ({ onNavigate, onSelectLineupTemplate }) => {
+export const Home: React.FC<HomeProps> = ({
+  onNavigate,
+  onSelectLineupTemplate,
+  onOpenLegal = () => {},
+  onOpenAdSenseGuide = () => {},
+}) => {
   const features = [
     {
       title: 'Custom Formations & Free Positioning',
@@ -59,66 +69,61 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, onSelectLineupTemplate }
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100">
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-800/80">
-        {/* Ambient Turf Green Glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
-
+      <section className="relative pt-12 pb-16 px-4 sm:px-6 lg:px-8 border-b border-slate-800/80">
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center relative z-10">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold mb-6 shadow-sm">
-            <Shield className="w-3.5 h-3.5" />
-            <span>Professional Football Tactics & Squad Builder</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-900 border border-slate-700/80 text-slate-300 text-xs font-semibold mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+            <span>Football Tactics & Squad Architecture</span>
           </div>
 
           {/* Main Title */}
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-3xl leading-[1.15]">
-            Build Your Perfect <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Starting XI</span>
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white max-w-3xl leading-[1.15]">
+            Build Your Tactical <span className="text-emerald-400">Starting XI</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="mt-5 text-base sm:text-xl text-slate-400 max-w-2xl font-normal leading-relaxed">
+          <p className="mt-4 text-base sm:text-lg text-slate-400 max-w-2xl font-normal leading-relaxed">
             Create formations, design tactics, freely position players, and build your own football lineups with authentic pro datasets and drawing tools.
           </p>
 
           {/* CTA Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="mt-7 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => onNavigate('tactics')}
-              className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition-all hover:scale-102"
+              className="w-full sm:w-auto py-2.5 px-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors border border-emerald-500"
             >
-              <span>Create Tactics</span>
+              <span>Open Tactics Board</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             <button
               type="button"
               onClick={() => onNavigate('lineups')}
-              className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-bold text-sm transition-all"
+              className="w-full sm:w-auto py-2.5 px-6 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs transition-colors"
             >
-              <span>Explore Lineups</span>
+              <span>Saved Lineups</span>
             </button>
           </div>
 
           {/* Interactive Tactical Board Showcase Preview */}
-          <div className="mt-12 w-full max-w-3xl bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl backdrop-blur-md relative overflow-hidden group">
+          <div className="mt-10 w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg relative overflow-hidden group">
             {/* Header bar */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-rose-500" />
-                <div className="w-3 h-3 rounded-full bg-amber-500" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-xs font-bold text-slate-300 ml-2">Matchday Tactical Canvas</span>
+                <Shield className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-semibold text-slate-200">Matchday Tactical Preview</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase px-2 py-0.5 rounded border border-emerald-500/30">
+                <span className="bg-slate-800 text-slate-300 text-[10px] font-bold uppercase px-2 py-0.5 rounded border border-slate-700">
                   4-3-3 Attacking
                 </span>
               </div>
             </div>
 
             {/* Simulated mini pitch */}
-            <div className="relative aspect-[16/9] sm:aspect-[2/1] rounded-2xl overflow-hidden pitch-stripes-horizontal border border-emerald-900/50 shadow-inner flex items-center justify-center cursor-pointer" onClick={() => onNavigate('tactics')}>
+            <div className="relative aspect-[16/9] sm:aspect-[2/1] rounded-lg overflow-hidden pitch-stripes-horizontal border border-[#1b432a] flex items-center justify-center cursor-pointer" onClick={() => onNavigate('tactics')}>
               {/* Pitch markings */}
               <div className="absolute inset-x-[10%] inset-y-0 border-x border-white/20" />
               <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-white/30" />
@@ -160,6 +165,15 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, onSelectLineupTemplate }
         </div>
       </section>
 
+      {/* Policy-compliant Ad Placement (Leaderboard / Responsive Banner) */}
+      <div className="w-full bg-[#0d1017] border-b border-slate-800/60 py-3 px-4 flex justify-center">
+        <AdBanner
+          format="leaderboard"
+          onOpenAdSenseGuide={onOpenAdSenseGuide}
+          className="max-w-4xl"
+        />
+      </div>
+
       {/* QUICK START PRESET TEMPLATES */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-3">
@@ -186,16 +200,16 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, onSelectLineupTemplate }
             <div
               key={tpl.id}
               onClick={() => onSelectLineupTemplate(tpl)}
-              className="group bg-slate-900 border border-slate-800 hover:border-emerald-500/60 rounded-2xl p-5 shadow-xl transition-all cursor-pointer hover:translate-y-[-2px] flex flex-col justify-between"
+              className="group bg-slate-900 border border-slate-800 hover:border-emerald-500/60 rounded-lg p-4 shadow-sm transition-colors cursor-pointer flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase px-2 py-0.5 rounded">
+                  <span className="bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold uppercase px-2 py-0.5 rounded">
                     {tpl.formationId.toUpperCase()}
                   </span>
                   <span className="text-[11px] text-slate-500">{tpl.players.length} Players</span>
                 </div>
-                <h3 className="text-sm font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-sm font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors">
                   {tpl.title}
                 </h3>
                 <p className="text-xs text-slate-400 mt-1.5 line-clamp-2">
@@ -203,9 +217,9 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, onSelectLineupTemplate }
                 </p>
               </div>
 
-              <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-800/80 text-xs font-bold text-slate-300 group-hover:text-emerald-400">
+              <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-800 text-xs font-semibold text-slate-300 group-hover:text-emerald-400">
                 <span>Load Template</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
               </div>
             </div>
           ))}
@@ -213,35 +227,35 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, onSelectLineupTemplate }
       </section>
 
       {/* CORE FEATURES SECTION */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-900/40 border-t border-slate-800/80">
+      <section className="py-14 px-4 sm:px-6 lg:px-8 bg-slate-900/40 border-t border-slate-800/80">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="text-center max-w-2xl mx-auto mb-10">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100">
               Built for Modern Football Tactics
             </h2>
             <p className="text-sm text-slate-400 mt-2">
-              Everything coaches, analysts, content creators, and football enthusiasts need to visualize tactics with professional precision.
+              Everything coaches, analysts, and football enthusiasts need to visualize tactics with professional precision.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {features.map((feat, idx) => {
               const Icon = feat.icon;
               return (
                 <div
                   key={idx}
-                  className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between gap-4"
+                  className="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm flex flex-col justify-between gap-3.5"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
-                      <Icon className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-lg bg-slate-800 text-emerald-400 border border-slate-700 flex items-center justify-center">
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                    <span className="text-[10px] font-semibold text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
                       {feat.tag}
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-100 mb-1.5">{feat.title}</h3>
+                    <h3 className="text-sm font-semibold text-slate-100 mb-1">{feat.title}</h3>
                     <p className="text-xs text-slate-400 leading-relaxed">{feat.description}</p>
                   </div>
                 </div>
@@ -252,16 +266,11 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, onSelectLineupTemplate }
       </section>
 
       {/* FOOTER */}
-      <footer className="py-8 px-4 border-t border-slate-800/80 bg-slate-950 text-center text-xs text-slate-500">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-emerald-500" />
-            <span className="font-bold text-slate-300">Starting XI</span>
-            <span>— Football Lineup & Tactics Studio</span>
-          </div>
-          <p>© 2026 Starting XI. Real-time tactical board & formation engine.</p>
-        </div>
-      </footer>
+      <Footer
+        onOpenLegal={onOpenLegal}
+        onOpenAdSenseGuide={onOpenAdSenseGuide}
+        showAdBanner={false}
+      />
     </div>
   );
 };
