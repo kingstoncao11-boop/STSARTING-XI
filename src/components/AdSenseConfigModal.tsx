@@ -29,7 +29,7 @@ export const AdSenseConfigModal: React.FC<AdSenseConfigModalProps> = ({
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('startingxi_adsense_pub_id') || '';
+    const saved = localStorage.getItem('startingxi_adsense_pub_id') || 'ca-pub-5187518738979855';
     setPublisherId(saved);
   }, []);
 
@@ -47,7 +47,7 @@ export const AdSenseConfigModal: React.FC<AdSenseConfigModalProps> = ({
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const currentPubId = publisherId.trim() || 'ca-pub-0000000000000000';
+  const currentPubId = publisherId.trim() || 'ca-pub-5187518738979855';
   const adsTxtSnippet = `google.com, ${currentPubId.replace('ca-', '')}, DIRECT, f08c47fec0942fa0`;
   const htmlScriptSnippet = `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${currentPubId}" crossorigin="anonymous"></script>`;
 

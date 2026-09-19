@@ -79,7 +79,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
             ref={adRef}
             className="adsbygoogle"
             style={{ display: 'block', width: '100%', height: '100%' }}
-            data-ad-client={adClientId || 'ca-pub-0000000000000000'}
+            data-ad-client={adClientId || 'ca-pub-5187518738979855'}
             data-ad-slot={slotId}
             data-ad-format={format === 'leaderboard' ? 'horizontal' : 'auto'}
             data-full-width-responsive="true"
