@@ -37,6 +37,7 @@ import { CustomPlayerModal } from './components/CustomPlayerModal';
 import { LegalModal, LegalTab } from './components/LegalModal';
 import { CookieBanner } from './components/CookieBanner';
 import { AdSenseConfigModal } from './components/AdSenseConfigModal';
+import { ContactModal } from './components/ContactModal';
 import { Footer } from './components/Footer';
 
 export default function App() {
@@ -57,6 +58,7 @@ export default function App() {
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   const [legalModalTab, setLegalModalTab] = useState<LegalTab>('privacy');
   const [isAdSenseConfigModalOpen, setIsAdSenseConfigModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const handleOpenLegal = useCallback((tab: LegalTab = 'privacy') => {
     setLegalModalTab(tab);
@@ -65,6 +67,10 @@ export default function App() {
 
   const handleOpenAdSenseGuide = useCallback(() => {
     setIsAdSenseConfigModalOpen(true);
+  }, []);
+
+  const handleOpenContact = useCallback(() => {
+    setIsContactModalOpen(true);
   }, []);
 
   // Load Initial Data from Storage & Check URL for Shared Lineup
@@ -307,6 +313,7 @@ export default function App() {
         onSaveCurrentLineup={handleSaveCurrentLineup}
         onOpenLegal={handleOpenLegal}
         onOpenAdSenseGuide={handleOpenAdSenseGuide}
+        onOpenContact={handleOpenContact}
         isSaved={isSaved}
       />
 
@@ -321,6 +328,7 @@ export default function App() {
               }}
               onOpenLegal={handleOpenLegal}
               onOpenAdSenseGuide={handleOpenAdSenseGuide}
+              onOpenContact={handleOpenContact}
             />
           </div>
         )}
@@ -359,6 +367,7 @@ export default function App() {
             <Footer
               onOpenLegal={handleOpenLegal}
               onOpenAdSenseGuide={handleOpenAdSenseGuide}
+              onOpenContact={handleOpenContact}
             />
           </div>
         )}
@@ -376,6 +385,7 @@ export default function App() {
             <Footer
               onOpenLegal={handleOpenLegal}
               onOpenAdSenseGuide={handleOpenAdSenseGuide}
+              onOpenContact={handleOpenContact}
             />
           </div>
         )}
@@ -410,6 +420,12 @@ export default function App() {
           editingPlayer={editingCustomPlayer}
         />
       )}
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
 
       {/* Legal Modal (Privacy Policy, Terms of Service, About, AdSense Transparency) */}
       <LegalModal

@@ -1,17 +1,19 @@
 import React from 'react';
-import { Shield, Lock, FileText, Info, DollarSign, Cookie, Heart } from 'lucide-react';
+import { Shield, Lock, FileText, Info, DollarSign, Cookie, Heart, Mail } from 'lucide-react';
 import { LegalTab } from './LegalModal';
 import { AdBanner } from './AdBanner';
 
 interface FooterProps {
   onOpenLegal: (tab: LegalTab) => void;
   onOpenAdSenseGuide: () => void;
+  onOpenContact?: () => void;
   showAdBanner?: boolean;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onOpenLegal,
   onOpenAdSenseGuide,
+  onOpenContact,
   showAdBanner = true,
 }) => {
   return (
@@ -67,8 +69,19 @@ export const Footer: React.FC<FooterProps> = ({
               className="hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium"
             >
               <Info className="w-3 h-3 text-slate-400" />
-              <span>About & Contact</span>
+              <span>About Us</span>
             </button>
+
+            {onOpenContact && (
+              <button
+                type="button"
+                onClick={onOpenContact}
+                className="hover:text-emerald-400 text-emerald-400/90 transition-colors flex items-center gap-1 font-medium"
+              >
+                <Mail className="w-3 h-3" />
+                <span>Contact</span>
+              </button>
+            )}
 
             <button
               type="button"

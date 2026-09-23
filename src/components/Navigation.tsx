@@ -12,7 +12,8 @@ import {
   Save,
   Check,
   Lock,
-  DollarSign
+  DollarSign,
+  Mail
 } from 'lucide-react';
 import { LegalTab } from './LegalModal';
 
@@ -24,6 +25,7 @@ interface NavigationProps {
   onSaveCurrentLineup: () => void;
   onOpenLegal?: (tab: LegalTab) => void;
   onOpenAdSenseGuide?: () => void;
+  onOpenContact?: () => void;
   hasUnsavedChanges?: boolean;
   isSaved?: boolean;
 }
@@ -36,6 +38,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   onSaveCurrentLineup,
   onOpenLegal,
   onOpenAdSenseGuide,
+  onOpenContact,
   hasUnsavedChanges = false,
   isSaved = false,
 }) => {
@@ -111,6 +114,19 @@ export const Navigation: React.FC<NavigationProps> = ({
             </button>
           )}
 
+          {/* Contact Button */}
+          {onOpenContact && (
+            <button
+              type="button"
+              onClick={onOpenContact}
+              title="Contact Us (startingxifplbuildercontact@gmail.com)"
+              className="hidden lg:flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-[#181c24] hover:bg-[#202530] border border-[#262c38] text-slate-300 hover:text-white text-xs font-semibold transition-colors"
+            >
+              <Mail className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Contact</span>
+            </button>
+          )}
+
           {/* Export PNG button */}
           <button
             type="button"
@@ -171,7 +187,21 @@ export const Navigation: React.FC<NavigationProps> = ({
           })}
 
           {/* Legal & AdSense quick links in mobile menu */}
-          <div className="pt-2 mt-2 border-t border-[#212632] flex items-center justify-between text-xs text-slate-400 px-1">
+          <div className="pt-2 mt-2 border-t border-[#212632] flex flex-wrap items-center justify-between text-xs text-slate-400 px-1 gap-2">
+            {onOpenContact && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenContact();
+                }}
+                className="hover:text-emerald-400 text-emerald-400 flex items-center gap-1 font-semibold py-1"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Contact Us</span>
+              </button>
+            )}
+
             {onOpenLegal && (
               <button
                 type="button"

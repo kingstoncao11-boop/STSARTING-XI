@@ -193,8 +193,8 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                 <h4 className="font-bold text-white text-sm mb-1.5">5. Contact Information</h4>
                 <p className="text-xs text-slate-400">
                   If you have questions or inquiries regarding our Privacy Policy or data handling practices, please contact us directly at{' '}
-                  <a href="mailto:kingstoncao11@gmail.com" className="text-emerald-400 underline hover:text-emerald-300">
-                    kingstoncao11@gmail.com
+                  <a href="mailto:startingxifplbuildercontact@gmail.com" className="text-emerald-400 underline hover:text-emerald-300">
+                    startingxifplbuildercontact@gmail.com
                   </a>
                   .
                 </p>
@@ -292,15 +292,15 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                     Publisher & Support Contact
                   </h4>
                   <p className="text-xs text-slate-300 mt-0.5">
-                    For technical support, copyright inquiries, business partnerships, or advertising questions:
+                    For technical support, FPL feature requests, copyright inquiries, business partnerships, or advertising questions:
                   </p>
                   <p className="text-xs font-semibold text-emerald-400 mt-1">
-                    kingstoncao11@gmail.com
+                    startingxifplbuildercontact@gmail.com
                   </p>
                 </div>
 
                 <a
-                  href="mailto:kingstoncao11@gmail.com?subject=Starting%20XI%20Inquiry"
+                  href="mailto:startingxifplbuildercontact@gmail.com?subject=Starting%20XI%20Inquiry"
                   className="py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors shrink-0"
                 >
                   Send Email

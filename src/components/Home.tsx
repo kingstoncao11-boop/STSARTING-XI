@@ -13,7 +13,12 @@ import {
   Layers,
   Award,
   Footprints,
-  Cpu
+  Cpu,
+  Mail,
+  Heart,
+  ExternalLink,
+  Info,
+  CheckCircle2
 } from 'lucide-react';
 import { SAMPLE_SAVED_LINEUPS } from '../data/defaultLineups';
 import { LegalTab } from './LegalModal';
@@ -25,13 +30,15 @@ interface HomeProps {
   onSelectLineupTemplate: (lineup: Lineup) => void;
   onOpenLegal?: (tab: LegalTab) => void;
   onOpenAdSenseGuide?: () => void;
+  onOpenContact?: () => void;
 }
 
 export const Home: React.FC<HomeProps> = ({
   onNavigate,
   onSelectLineupTemplate,
-  onOpenLegal = () => {},
+  onOpenLegal = (_tab: LegalTab = 'privacy') => {},
   onOpenAdSenseGuide = () => {},
+  onOpenContact = () => {},
 }) => {
   const features = [
     {
@@ -265,10 +272,116 @@ export const Home: React.FC<HomeProps> = ({
         </div>
       </section>
 
+      {/* ABOUT US SECTION */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-slate-800/80 bg-[#0c0e13]">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-gradient-to-b from-[#141822] to-[#10131a] border border-[#232a3b] rounded-2xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
+            {/* Subtle background glow */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10">
+              {/* Header Pill */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-950/50 border border-emerald-800/60 text-emerald-400 text-xs font-semibold mb-4">
+                <Heart className="w-3.5 h-3.5 fill-emerald-400/20" />
+                <span>About Starting XI</span>
+              </div>
+
+              {/* Title & Mission Statement */}
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                Crafted for Football Tacticians, FPL Managers & Fans
+              </h2>
+
+              <p className="mt-4 text-sm sm:text-base text-slate-300 leading-relaxed max-w-3xl">
+                Starting XI is an independent, free-to-use football tactics board and lineup architect built for managers, Fantasy Premier League (FPL) enthusiasts, grassroots coaches, and football analysts worldwide. We believe tactical planning and squad building should be fast, visual, and open to all — without mandatory logins, paywalls, or restrictive software.
+              </p>
+
+              {/* Highlights Grid */}
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80 flex flex-col justify-between">
+                  <div>
+                    <div className="w-7 h-7 rounded-lg bg-emerald-950 border border-emerald-800/60 text-emerald-400 flex items-center justify-center mb-2.5">
+                      <Shield className="w-3.5 h-3.5" />
+                    </div>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">FPL & Fantasy Friendly</h3>
+                    <p className="text-[11px] text-slate-400 mt-1.5 leading-normal">
+                      Plan your weekly gameweek starting 11, visualize bench setups, test captaincy calls, and debate transfers with your mini-league rivals.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80 flex flex-col justify-between">
+                  <div>
+                    <div className="w-7 h-7 rounded-lg bg-emerald-950 border border-emerald-800/60 text-emerald-400 flex items-center justify-center mb-2.5">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </div>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Tactical Drawing Suite</h3>
+                    <p className="text-[11px] text-slate-400 mt-1.5 leading-normal">
+                      Draw pressing sawteeth, curved runs, passing lanes, and highlight defensive blocks directly onto horizontal or vertical pitches.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80 flex flex-col justify-between">
+                  <div>
+                    <div className="w-7 h-7 rounded-lg bg-emerald-950 border border-emerald-800/60 text-emerald-400 flex items-center justify-center mb-2.5">
+                      <Users className="w-3.5 h-3.5" />
+                    </div>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Community & Open Access</h3>
+                    <p className="text-[11px] text-slate-400 mt-1.5 leading-normal">
+                      100% free with top international pro players, custom player creation, instant image exports, and community-requested updates.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Banner Inside About Us */}
+              <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#0d1017] p-5 rounded-xl border border-[#1f2636]">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span>Have feedback, suggestions or need a player added?</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      We review all community feedback, feature requests, and FPL tool ideas directly.
+                    </p>
+                    <code className="text-[11px] font-mono text-emerald-400 mt-1 inline-block">
+                      startingxifplbuildercontact@gmail.com
+                    </code>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={onOpenContact}
+                    className="w-full sm:w-auto py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Contact Us</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenLegal('about')}
+                    className="hidden md:flex py-2 px-3 rounded-lg bg-[#181c24] hover:bg-[#222733] border border-[#272d3b] text-slate-300 hover:text-white font-medium text-xs items-center gap-1 transition-colors"
+                  >
+                    <Info className="w-3.5 h-3.5 text-slate-400" />
+                    <span>About Details</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <Footer
         onOpenLegal={onOpenLegal}
         onOpenAdSenseGuide={onOpenAdSenseGuide}
+        onOpenContact={onOpenContact}
         showAdBanner={false}
       />
     </div>
