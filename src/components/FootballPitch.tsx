@@ -17,6 +17,7 @@ interface FootballPitchProps {
   onAddAnnotation: (annotation: Annotation) => void;
   onDeleteAnnotation: (id: string) => void;
   displaySettings: LineupDisplaySettings;
+  onDragStateChange?: (isDragging: boolean) => void;
 }
 
 export const FootballPitch: React.FC<FootballPitchProps> = ({
@@ -33,6 +34,7 @@ export const FootballPitch: React.FC<FootballPitchProps> = ({
   onAddAnnotation,
   onDeleteAnnotation,
   displaySettings,
+  onDragStateChange,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pitchContainerRef = useRef<HTMLDivElement>(null);
@@ -104,6 +106,7 @@ export const FootballPitch: React.FC<FootballPitchProps> = ({
 
     onSelectPlayer(instanceId);
     setDraggingPlayerId(instanceId);
+    onDragStateChange?.(true);
 
     const pitch = pitchContainerRef.current;
     if (!pitch) return;
@@ -136,6 +139,7 @@ export const FootballPitch: React.FC<FootballPitchProps> = ({
 
     const handlePointerUp = () => {
       setDraggingPlayerId(null);
+      onDragStateChange?.(false);
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };

@@ -95,6 +95,8 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
 
   // Active selected player on pitch or bench
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [isPlayerDragging, setIsPlayerDragging] = useState(false);
+  const [rightSidebarTab, setRightSidebarTab] = useState<'search' | 'selected'>('search');
 
   // Annotation states
   const [isDrawingMode, setIsDrawingMode] = useState(false);
@@ -160,6 +162,11 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
       null
     );
   }, [selectedPlayerId, currentLineup.players, currentLineup.bench]);
+
+  const isSelectedPlayerOnBench = useMemo(() => {
+    if (!selectedPlayerId) return false;
+    return currentLineup.bench.some((p) => p.instanceId === selectedPlayerId);
+  }, [selectedPlayerId, currentLineup.bench]);
 
   // Set of player IDs currently on pitch or bench
   const pitchPlayerIds = useMemo(
@@ -836,18 +843,22 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
               onAddAnnotation={handleAddAnnotation}
               onDeleteAnnotation={handleDeleteAnnotation}
               displaySettings={currentLineup.displaySettings}
+              onDragStateChange={setIsPlayerDragging}
             />
 
-            {/* Contextual Player Editor Overlay */}
+            {/* Contextual Player Floating Bottom HUD (Non-intrusive) */}
             {selectedPitchPlayer && (
-              <div className="absolute top-4 right-4 z-40 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-xl w-[calc(100%-2rem)] sm:w-auto animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <PlayerEditor
                   selectedPitchPlayer={selectedPitchPlayer}
                   allLineupPlayers={currentLineup.players}
+                  isOnBench={isSelectedPlayerOnBench}
+                  isDragging={isPlayerDragging}
                   onClose={() => setSelectedPlayerId(null)}
                   onUpdatePlayer={handleUpdatePlayer}
                   onMoveToBench={handleMoveToBench}
-                  onRemovePlayer={handleRemovePlayer}
+                  onMoveBenchToPitch={handleMoveBenchToPitch}
+                  onRemovePlayer={isSelectedPlayerOnBench ? handleRemoveFromBench : handleRemovePlayer}
                   onSetCaptain={handleSetCaptain}
                 />
               </div>
@@ -1097,6 +1108,7 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
               onAddAnnotation={handleAddAnnotation}
               onDeleteAnnotation={handleDeleteAnnotation}
               displaySettings={currentLineup.displaySettings}
+              onDragStateChange={setIsPlayerDragging}
             />
           </div>
 
@@ -1112,16 +1124,19 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
             />
           </div>
 
-          {/* Floating Selected Player Contextual Editor (Overlay on Pitch) */}
+          {/* Floating Selected Player Contextual HUD (Bottom Center - Non-intrusive & Sleek) */}
           {selectedPitchPlayer && (
-            <div className="absolute top-3 right-3 z-40 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="fixed sm:absolute bottom-16 sm:bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-xl w-[calc(100%-1rem)] sm:w-auto animate-in fade-in slide-in-from-bottom-2 duration-150">
               <PlayerEditor
                 selectedPitchPlayer={selectedPitchPlayer}
                 allLineupPlayers={currentLineup.players}
+                isOnBench={isSelectedPlayerOnBench}
+                isDragging={isPlayerDragging}
                 onClose={() => setSelectedPlayerId(null)}
                 onUpdatePlayer={handleUpdatePlayer}
                 onMoveToBench={handleMoveToBench}
-                onRemovePlayer={handleRemovePlayer}
+                onMoveBenchToPitch={handleMoveBenchToPitch}
+                onRemovePlayer={isSelectedPlayerOnBench ? handleRemoveFromBench : handleRemovePlayer}
                 onSetCaptain={handleSetCaptain}
               />
             </div>
@@ -1133,16 +1148,74 @@ export const TacticsEditor: React.FC<TacticsEditorProps> = ({
         {/* ========================================================= */}
         {showRightSidebar && (
           <aside className="hidden lg:flex w-80 xl:w-96 flex-col p-2 border-l border-[#222733] bg-[#11141a]/95 overflow-hidden min-h-0 flex-shrink-0 animate-in slide-in-from-right duration-150">
-            <PlayerSearch
-              allPlayers={allPlayers}
-              pitchPlayerIds={pitchPlayerIds}
-              benchPlayerIds={benchPlayerIds}
-              onAddToPitch={handleAddPlayerToPitch}
-              onAddToBench={handleAddPlayerToBench}
-              onOpenCreateCustomPlayer={onOpenCreateCustomPlayer}
-              onEditCustomPlayer={onEditCustomPlayer}
-              onDeleteCustomPlayer={onDeleteCustomPlayer}
-            />
+            {selectedPitchPlayer ? (
+              <div className="flex flex-col h-full overflow-hidden">
+                {/* Tab Switcher between Search and Selected Player */}
+                <div className="flex items-center gap-1 p-1 bg-[#151923] rounded-xl border border-[#232938] mb-2 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setRightSidebarTab('search')}
+                    className={`flex-1 py-1 px-2 rounded-lg text-xs font-bold transition-all ${
+                      rightSidebarTab === 'search'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Search Database
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRightSidebarTab('selected')}
+                    className={`flex-1 py-1 px-2 rounded-lg text-xs font-bold transition-all truncate flex items-center justify-center gap-1 ${
+                      rightSidebarTab === 'selected'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <span>#{selectedPitchPlayer.shirtNumber} {selectedPitchPlayer.player.shortName || selectedPitchPlayer.player.name}</span>
+                  </button>
+                </div>
+
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                  {rightSidebarTab === 'selected' ? (
+                    <PlayerEditor
+                      selectedPitchPlayer={selectedPitchPlayer}
+                      allLineupPlayers={currentLineup.players}
+                      isOnBench={isSelectedPlayerOnBench}
+                      inSidebar={true}
+                      onClose={() => setSelectedPlayerId(null)}
+                      onUpdatePlayer={handleUpdatePlayer}
+                      onMoveToBench={handleMoveToBench}
+                      onMoveBenchToPitch={handleMoveBenchToPitch}
+                      onRemovePlayer={isSelectedPlayerOnBench ? handleRemoveFromBench : handleRemovePlayer}
+                      onSetCaptain={handleSetCaptain}
+                    />
+                  ) : (
+                    <PlayerSearch
+                      allPlayers={allPlayers}
+                      pitchPlayerIds={pitchPlayerIds}
+                      benchPlayerIds={benchPlayerIds}
+                      onAddToPitch={handleAddPlayerToPitch}
+                      onAddToBench={handleAddPlayerToBench}
+                      onOpenCreateCustomPlayer={onOpenCreateCustomPlayer}
+                      onEditCustomPlayer={onEditCustomPlayer}
+                      onDeleteCustomPlayer={onDeleteCustomPlayer}
+                    />
+                  )}
+                </div>
+              </div>
+            ) : (
+              <PlayerSearch
+                allPlayers={allPlayers}
+                pitchPlayerIds={pitchPlayerIds}
+                benchPlayerIds={benchPlayerIds}
+                onAddToPitch={handleAddPlayerToPitch}
+                onAddToBench={handleAddPlayerToBench}
+                onOpenCreateCustomPlayer={onOpenCreateCustomPlayer}
+                onEditCustomPlayer={onEditCustomPlayer}
+                onDeleteCustomPlayer={onDeleteCustomPlayer}
+              />
+            )}
           </aside>
         )}
       </div>
